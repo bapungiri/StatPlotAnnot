@@ -50,6 +50,17 @@ class SeabornPlotter:
         if xtick_rot is not None:
             ax.tick_params(axis="x", labelrotation=xtick_rot)
 
+    # @staticmethod
+    # def reformat_legend(leg):
+    #     leg.set_frame_on(False)
+    #     leg.prop.set_size(2)
+
+    def lineplot(self, palette, **kwargs):
+        lp = sns.lineplot(**self.plot_kw, palette=palette, **kwargs)
+        # leg = lp.get_legend()
+        # self.reformat_legend(leg)
+        return self
+
     def barplot(self, dodge=True, palette=None, **kwargs):
         bp = sns.barplot(
             **self.plot_kw,
