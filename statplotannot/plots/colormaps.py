@@ -27,7 +27,11 @@ def colors_sd_light(amount=1):
 
 
 def colors_mab(amount=1):
+    # return [
+    #     adjust_lightness("#E89317", amount=amount),  # Unstruc
+    #     adjust_lightness("#3980ea", amount=amount),  # Struc
+    # ]
     return [
-        adjust_lightness("#424242", amount=amount),  # Unstruc
-        adjust_lightness("#eb4034", amount=amount),  # Struc
+        adjust_lightness("#f55673", amount=amount),  # Unstruc
+        adjust_lightness("#3d9991", amount=amount),  # Struc
     ]
