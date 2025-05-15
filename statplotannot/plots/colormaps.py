@@ -33,5 +33,5 @@ def colors_mab(amount=1):
     # ]
     return [
         adjust_lightness("#f55673", amount=amount),  # Unstruc
-        adjust_lightness("#3d9991", amount=amount),  # Struc
+        adjust_lightness("#3baaa1", amount=amount),  # Struc
     ]
