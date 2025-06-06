@@ -13,6 +13,7 @@ import pandas as pd
 import itertools
 from ..stats import bootstrap_test
 from functools import partial
+from .plot_utils import fix_legend
 
 
 class SeabornPlotter:
@@ -52,20 +53,9 @@ class SeabornPlotter:
         if xtick_rot is not None:
             ax.tick_params(axis="x", labelrotation=xtick_rot)
 
-    @staticmethod
-    def fix_legend(ax):
-        ax.legend(
-            loc="upper right",
-            frameon=False,
-            fontsize=8,
-            title=None,
-            title_fontsize=8,
-            bbox_to_anchor=(1.1, 1.1),
-        )
-
     def lineplot(self, palette, **kwargs):
         sns.lineplot(**self.plot_kw, palette=palette, **kwargs)
-        self.fix_legend(self.ax)
+        fix_legend(self.ax)
         return self
 
     def barplot(self, dodge=True, palette=None, err_kws=dict(lw=1.1), **kwargs):
@@ -78,7 +68,7 @@ class SeabornPlotter:
         )
         self.orders = [_.get_text() for _ in bp.get_xticklabels()]
 
-        self.fix_legend(self.ax)
+        fix_legend(self.ax)
         return self
 
     def stat_test(self, test_name="Kruskal", verbose=False):
