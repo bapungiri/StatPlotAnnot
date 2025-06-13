@@ -18,7 +18,7 @@ from .plot_utils import fix_legend
 
 class SeabornPlotter:
     def __init__(
-        self, data, x, y, hue=None, hue_order=None, xtick_rot=30, ax=None
+        self, data, x, y, hue=None, hue_order=None, xtick_rot=None, ax=None
     ) -> None:
         """Initiates data format for plotting
 
@@ -55,7 +55,7 @@ class SeabornPlotter:
 
     def lineplot(self, palette, **kwargs):
         sns.lineplot(**self.plot_kw, palette=palette, **kwargs)
-        fix_legend(self.ax)
+        # fix_legend(self.ax)
         return self
 
     def barplot(self, dodge=True, palette=None, err_kws=dict(lw=1.1), **kwargs):
