@@ -58,6 +58,11 @@ class SeabornPlotter:
         # fix_legend(self.ax)
         return self
 
+    def pointplot(self, palette, **kwargs):
+        sns.pointplot(**self.plot_kw, palette=palette, **kwargs)
+        # fix_legend(self.ax)
+        return self
+
     def barplot(self, dodge=True, palette=None, err_kws=dict(lw=1.1), **kwargs):
         bp = sns.barplot(
             **self.plot_kw,
