@@ -96,9 +96,16 @@ class SeabornPlotter:
         n_resamples=10000,
         paired=False,
         verbose=False,
+        pairs=None,
     ):
         annot_kw["pvalue_thresholds"] = [[p_thresh, "*"], [1, "ns"]]
-        pairs = [tuple((oi, hi) for hi in self.hue_order) for oi in self.orders]
+        if pairs is None:
+            # pairs = [tuple((oi, hi) for hi in self.hue_order) for oi in self.orders]
+            pairs = [
+                ((x, i1), (x, i2))
+                for x in self.orders
+                for i1, i2 in itertools.combinations(self.hue_order, 2)
+            ]
         annotator = Annotator(pairs=pairs, order=self.orders, **self.plot_kw)
         custom_long_name = f"Bootstrap testing for {statistic.__name__}"
         custom_short_name = "Bootstrap"
