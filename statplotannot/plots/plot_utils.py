@@ -27,4 +27,5 @@ def fix_legend(
 def xtick_format(ax, rotation=0):
     ax.tick_params(axis="x", rotation=rotation)
     for label in ax.get_xticklabels():
+        label.set_rotation_mode("anchor")
         label.set_horizontalalignment("right")

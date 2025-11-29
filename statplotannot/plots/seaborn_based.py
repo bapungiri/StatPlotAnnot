@@ -97,14 +97,18 @@ class SeabornPlotter:
         paired=False,
         verbose=False,
         pairs=None,
+        exclude_pairs=None,
     ):
         annot_kw["pvalue_thresholds"] = [[p_thresh, "*"], [1, "ns"]]
         if pairs is None:
-            # pairs = [tuple((oi, hi) for hi in self.hue_order) for oi in self.orders]
+            good_hues = self.hue_order
+            if exclude_pairs is not None:
+                good_hues = np.setdiff1d(self.hue_order, exclude_pairs)
+
             pairs = [
                 ((x, i1), (x, i2))
                 for x in self.orders
-                for i1, i2 in itertools.combinations(self.hue_order, 2)
+                for i1, i2 in itertools.combinations(good_hues, 2)
             ]
         annotator = Annotator(pairs=pairs, order=self.orders, **self.plot_kw)
         custom_long_name = f"Bootstrap testing for {statistic.__name__}"
