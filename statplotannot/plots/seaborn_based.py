@@ -18,18 +18,26 @@ from .plot_utils import fix_legend
 
 class SeabornPlotter:
     def __init__(
-        self, data, x, y, hue=None, hue_order=None, xtick_rot=None, ax=None
+        self,
+        data=None,
+        x=None,
+        y=None,
+        hue=None,
+        hue_order=None,
+        xtick_rot=None,
+        ax=None,
+        **kwargs,
     ) -> None:
         """Initiates data format for plotting
 
         Parameters
         ----------
-        data : _type_
-            _description_
-        x : _type_
-            _description_
-        y : _type_
-            _description_
+        data : _type_, optional
+            _description_, by default None
+        x : _type_, optional
+            _description_, by default None
+        y : _type_, optional
+            _description_, by default None
         hue : _type_, optional
             _description_, by default None
         hue_order : _type_, optional
@@ -38,7 +46,23 @@ class SeabornPlotter:
             _description_, by default 30
         ax : _type_, optional
             _description_, by default None
+        **kwargs : dict
+            Additional keyword arguments to pass to plot functions
         """
+        # Extract values from kwargs if not provided as arguments
+        if data is None:
+            data = kwargs.get("data")
+        if x is None:
+            x = kwargs.get("x")
+        if y is None:
+            y = kwargs.get("y")
+        if hue is None:
+            hue = kwargs.get("hue")
+        if hue_order is None:
+            hue_order = kwargs.get("hue_order")
+        if ax is None:
+            ax = kwargs.get("ax")
+
         if ax is None:
             ax = plt.gca()
         self.data = data
@@ -53,6 +77,17 @@ class SeabornPlotter:
         if xtick_rot is not None:
             ax.tick_params(axis="x", labelrotation=xtick_rot)
 
+    def stripplot(self, palette=None, dodge=True, **kwargs):
+        sns.stripplot(
+            **self.plot_kw,
+            palette=palette,
+            edgecolor="w",
+            dodge=dodge,
+            **kwargs,
+        )
+        self.plot_kw["ax"].legend("", frameon=False)
+        return self
+
     def lineplot(self, palette, **kwargs):
         sns.lineplot(**self.plot_kw, palette=palette, **kwargs)
         # fix_legend(self.ax)
@@ -63,7 +98,10 @@ class SeabornPlotter:
         # fix_legend(self.ax)
         return self
 
-    def barplot(self, dodge=True, palette=None, err_kws=dict(lw=1.1), **kwargs):
+    def barplot(self, dodge=True, palette=None, err_kws=None, **kwargs):
+        if err_kws is None:
+            err_kws = {"lw": 1.1}
+
         bp = sns.barplot(
             **self.plot_kw,
             dodge=dodge,
@@ -77,6 +115,11 @@ class SeabornPlotter:
         return self
 
     def stat_test(self, test_name="Kruskal", verbose=False):
+        if self.orders is None:
+            raise ValueError("Call barplot() (or set self.orders) before stat_test().")
+        if self.hue_order is None:
+            raise ValueError("stat_test() requires hue_order to build pairs.")
+
         pairs = [tuple((oi, hi) for hi in self.hue_order) for oi in self.orders]
         annotator = Annotator(pairs=pairs, order=self.orders, **self.plot_kw)
 
@@ -88,6 +131,7 @@ class SeabornPlotter:
         annotator.configure(test=test_name, **annot_kw, color="k", verbose=verbose)
         annotator.apply_and_annotate()
         annotator.reset_configuration()
+        return self
 
     def bootstrap_test(
         self,
@@ -99,7 +143,14 @@ class SeabornPlotter:
         pairs=None,
         exclude_pairs=None,
     ):
-        annot_kw["pvalue_thresholds"] = [[p_thresh, "*"], [1, "ns"]]
+        if self.orders is None:
+            raise ValueError(
+                "Call barplot() (or set self.orders) before bootstrap_test()."
+            )
+        if self.hue_order is None and pairs is None:
+            raise ValueError("bootstrap_test() needs hue_order or explicit pairs.")
+
+        local_annot_kw = {**annot_kw, "pvalue_thresholds": [[p_thresh, "*"], [1, "ns"]]}
         if pairs is None:
             good_hues = self.hue_order
             if exclude_pairs is not None:
@@ -123,9 +174,10 @@ class SeabornPlotter:
             paired=paired,
         )
 
-        annotator.configure(test=test, **annot_kw, color="k", verbose=verbose)
+        annotator.configure(test=test, **local_annot_kw, color="k", verbose=verbose)
         annotator.apply_and_annotate()
         annotator.reset_configuration()
+        return self
 
     def stat_anot(
         self,
