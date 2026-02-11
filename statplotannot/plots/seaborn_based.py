@@ -114,6 +114,141 @@ class SeabornPlotter:
         fix_legend(self.ax)
         return self
 
+    def boxplot_outline(self, palette=None, sep=0.9, zorder=2, **kwargs):
+        ax = sns.boxplot(
+            **self.plot_kw,
+            linewidth=0.4,
+            palette=palette,
+            saturation=1,
+            showfliers=False,
+            **kwargs,
+        )
+
+        box_patches = [
+            patch for patch in ax.patches if type(patch) == mpl.patches.PathPatch
+        ]
+
+        n_boxes = len(box_patches)
+        lines_per_box = len(ax.lines) // n_boxes
+
+        for i, patch in enumerate(box_patches):
+            box_color = patch.get_facecolor()
+            patch.set_facecolor("None")
+            patch.set_edgecolor(box_color)
+            patch.set_zorder(zorder)
+
+            # whisker_lines = [
+            #     ax.lines[i * lines_per_box],
+            #     ax.lines[i * lines_per_box+1],
+            # ]
+
+            whisker_lines = ax.lines[i * lines_per_box : (i + 1) * lines_per_box]
+            # whisker_lines = [whisker_lines[0], whisker_lines[1]]
+
+            for line in whisker_lines:
+                line.set_color(box_color)
+                line.set_zorder(zorder)
+
+        for c in ax.get_children():
+            # searching for PathPatches
+            if isinstance(c, mpl.patches.PathPatch):
+                # getting current width of box:
+                p = c.get_path()
+                verts = p.vertices
+                verts_sub = verts[:-1]
+                xmin = np.min(verts_sub[:, 0])
+                xmax = np.max(verts_sub[:, 0])
+                xmid = 0.5 * (xmin + xmax)
+                xhalf = 0.5 * (xmax - xmin)
+
+                # setting new width of box
+                xmin_new = xmid - sep * xhalf
+                xmax_new = xmid + sep * xhalf
+                verts_sub[verts_sub[:, 0] == xmin, 0] = xmin_new
+                verts_sub[verts_sub[:, 0] == xmax, 0] = xmax_new
+
+                # setting new width of median line
+                for l in ax.lines:
+                    if np.all(l.get_xdata() == [xmin, xmax]):
+                        l.set_xdata([xmin_new, xmax_new])
+
+        self.plot_kw["ax"].legend("", frameon=False)
+
+        self.orders = [_.get_text() for _ in ax.get_xticklabels()]
+
+        return self
+
+    def boxplot_filled(
+        self, palette=None, sep=0.9, inherit_whisker_color=False, **kwargs
+    ):
+        ax = sns.boxplot(
+            **self.plot_kw,
+            linewidth=0,
+            palette=palette,
+            saturation=1,
+            showfliers=False,
+            medianprops=dict(color="white", linewidth=0.8, solid_capstyle="butt"),
+            boxprops=dict(edgecolor="w", linewidth=0),
+            whiskerprops=dict(color="k", linewidth=0.5, solid_capstyle="butt"),
+            showcaps=True,
+            capprops=dict(color="k"),
+            # capwidths=0.2,
+            **kwargs,
+        )
+
+        if inherit_whisker_color:
+            box_patches = [
+                patch for patch in ax.patches if type(patch) == mpl.patches.PathPatch
+            ]
+
+            n_boxes = len(box_patches)
+            lines_per_box = len(ax.lines) // n_boxes
+
+            for i, patch in enumerate(box_patches):
+                box_color = patch.get_facecolor()
+
+                # whisker_lines = [
+                #     ax.lines[i * lines_per_box],
+                #     ax.lines[i * lines_per_box+1],
+                # ]
+
+                whisker_lines = ax.lines[i * lines_per_box : (i + 1) * lines_per_box]
+                whisker_lines = [whisker_lines[0], whisker_lines[1]]
+
+                for line in whisker_lines:
+                    line.set_color(box_color)
+
+        for c in ax.get_children():
+            # searching for PathPatches
+            if isinstance(c, mpl.patches.PathPatch):
+                # getting current width of box:
+                p = c.get_path()
+                verts = p.vertices
+                verts_sub = verts[:-1]
+                xmin = np.min(verts_sub[:, 0])
+                xmax = np.max(verts_sub[:, 0])
+                xmid = 0.5 * (xmin + xmax)
+                xhalf = 0.5 * (xmax - xmin)
+
+                # setting new width of box
+                xmin_new = xmid - sep * xhalf
+                xmax_new = xmid + sep * xhalf
+                verts_sub[verts_sub[:, 0] == xmin, 0] = xmin_new
+                verts_sub[verts_sub[:, 0] == xmax, 0] = xmax_new
+
+                # setting new width of median line
+                for l in ax.lines:
+                    if np.all(l.get_xdata() == [xmin, xmax]):
+                        l.set_xdata([xmin_new, xmax_new])
+
+        yticks = ax.get_yticks()
+        ax.set_yticks(yticks)
+
+        self.plot_kw["ax"].legend("", frameon=False)
+
+        self.orders = [_.get_text() for _ in ax.get_xticklabels()]
+        return self
+
     def stat_test(self, test_name="Kruskal", verbose=False):
         if self.orders is None:
             raise ValueError("Call barplot() (or set self.orders) before stat_test().")
@@ -304,74 +439,6 @@ class SleepDepPlotter(SeabornPlotter):
             p.set_linewidth(0.5)  # Sets the thickness of the quartile lines
             p.set_color("white")  # Sets the color of the quartile lines
             p.set_alpha(1)
-
-        self.plot_kw["ax"].legend("", frameon=False)
-
-        return self
-
-    def boxplot1(self, palette=None, sep=0.9, inherit_whisker_color=False, **kwargs):
-        ax = sns.boxplot(
-            **self.plot_kw,
-            linewidth=0,
-            palette=palette,
-            saturation=1,
-            showfliers=False,
-            medianprops=dict(color="white", linewidth=0.6, solid_capstyle="butt"),
-            boxprops=dict(edgecolor="w", linewidth=0),
-            whiskerprops=dict(color="k", linewidth=0.5, solid_capstyle="butt"),
-            showcaps=True,
-            capprops=dict(color="k"),
-            # capwidths=0.2,
-            **kwargs,
-        )
-
-        if inherit_whisker_color:
-            box_patches = [
-                patch for patch in ax.patches if type(patch) == mpl.patches.PathPatch
-            ]
-
-            n_boxes = len(box_patches)
-            lines_per_box = len(ax.lines) // n_boxes
-
-            for i, patch in enumerate(box_patches):
-                box_color = patch.get_facecolor()
-
-                # whisker_lines = [
-                #     ax.lines[i * lines_per_box],
-                #     ax.lines[i * lines_per_box+1],
-                # ]
-
-                whisker_lines = ax.lines[i * lines_per_box : (i + 1) * lines_per_box]
-                whisker_lines = [whisker_lines[0], whisker_lines[1]]
-
-                for line in whisker_lines:
-                    line.set_color(box_color)
-
-        for c in ax.get_children():
-            # searching for PathPatches
-            if isinstance(c, mpl.patches.PathPatch):
-                # getting current width of box:
-                p = c.get_path()
-                verts = p.vertices
-                verts_sub = verts[:-1]
-                xmin = np.min(verts_sub[:, 0])
-                xmax = np.max(verts_sub[:, 0])
-                xmid = 0.5 * (xmin + xmax)
-                xhalf = 0.5 * (xmax - xmin)
-
-                # setting new width of box
-                xmin_new = xmid - sep * xhalf
-                xmax_new = xmid + sep * xhalf
-                verts_sub[verts_sub[:, 0] == xmin, 0] = xmin_new
-                verts_sub[verts_sub[:, 0] == xmax, 0] = xmax_new
-
-                # setting new width of median line
-                for l in ax.lines:
-                    if np.all(l.get_xdata() == [xmin, xmax]):
-                        l.set_xdata([xmin_new, xmax_new])
-
-        yticks = ax.get_yticks()
-        ax.set_yticks(yticks)
 
         self.plot_kw["ax"].legend("", frameon=False)
 
