@@ -3,14 +3,17 @@ import matplotlib as mpl
 
 
 def fix_legend(
-    ax, frameon=False, ncols=1, loc="best", only_labels=False, fw="regular", fs=8
+    ax, frameon=False, ncols=1, loc="best", only_labels=False, fw="regular", fs=None
 ):
+    if fs is None:
+        fs = mpl.rcParams["legend.fontsize"]
+
     leg = ax.legend(
         loc=loc,
         frameon=frameon,
         prop={"weight": fw, "size": fs},
         title=None,
-        title_fontsize=8,
+        title_fontsize=fs,
         ncols=ncols,
         labelcolor="linecolor" if only_labels else None,
         scatterpoints=0 if only_labels else None,

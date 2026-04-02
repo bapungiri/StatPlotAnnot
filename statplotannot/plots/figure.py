@@ -20,7 +20,7 @@ class Fig:
         num=None,
         size=(8.5, 11),
         fontsize=8,
-        axis_color="#545454",
+        axis_color="#454545",
         axis_lw=1.2,
         tick_size=3.5,
         constrained_layout=True,
@@ -43,6 +43,7 @@ class Fig:
         mpl.rcParams["axes.spines.top"] = False
         mpl.rcParams["axes.spines.right"] = False
         mpl.rcParams["xtick.major.width"] = axis_lw
+        plt.rcParams["legend.fontsize"] = fontsize
         # mpl.rcParams["axes.autolimit_mode"] = "round_numbers"
         # mpl.rcParams["axes.ymargin"] = 0
         mpl.rcParams["xtick.major.size"] = tick_size
@@ -157,7 +158,7 @@ class Fig:
         """
 
         if fontsize is None:
-            fontsize = mpl.rcParams["axes.titlesize"]
+            fontsize = mpl.rcParams["legend.fontsize"]
 
         legend = ax.legend(
             labelcolor="linecolor",
